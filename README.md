@@ -13,7 +13,7 @@ The design work behind it (requirements, estimates, trade-offs) is in [`docs/00-
 | # | Stage | New tech / concepts | Status |
 |---|---|---|---|
 | 0 | Setup | Spring Boot, Gradle, Docker | ✅ |
-| 1 | [Monolith, in-memory](docs/stage-1.md) | REST, layering, DI, Base62, concurrency, unit tests | 🚧 controller test left |
+| 1 | [Monolith, in-memory](docs/stage-1.md) | REST, layering, DI, Base62, concurrency, unit tests | ✅ |
 | 2 | Real database + expiry | MySQL, Docker Compose, Spring JDBC, Testcontainers | ⬜ |
 | 3 | Caching | Redis, cache-aside, TTLs | ⬜ |
 | 4 | Split out ID generation | Multi-module Gradle, ID ranges, ZooKeeper / Curator | ⬜ |

@@ -3,7 +3,7 @@
 **Goal:** the whole shorten → redirect flow working in one Spring Boot app, with storage in memory.
 **Why start in memory:** it isolates one lesson (layering + HTTP) with no Docker or SQL to debug. Stage 2 is the real test of Stage 1: swapping in MySQL should mean adding **one class**, with no changes to the domain.
 
-**Status:** 🚧 everything is built and tested except the controller test (`@WebMvcTest`).
+**Status:** ✅ complete. 36 automated tests pass, and the app was checked end to end with curl (results below).
 
 ---
 
@@ -76,7 +76,9 @@ Records already replace `@Data`/`@Value`, and writing constructors by hand first
 | `CounterIdGeneratorTest` | unit, concurrency | 200 threads × 1,000 ids give 200,000 unique ids (a `CountDownLatch` start gate + `ExecutorService`) |
 | `UrlShortnerTest` | unit, with test doubles | a lambda stub controls ids; a stub returning a duplicate simulates a buggy generator; a Mockito mock verifies that `resolve` never calls `nextId()` |
 | `UrlShortnerApplicationTests` | full Spring context | all beans wire up |
-| `RedirectionControllerTest` | `@WebMvcTest` slice | ⬜ to do |
+| `RedirectionControllerTest` | `@WebMvcTest` slice + `@MockitoBean` | 201 + `Location` + JSON body; 302; 404; 400 for blank, non-http(s), `javascript:`, whitespace, over 2048 chars and missing field. On bad input the domain is never called. |
+
+**Total: 36 tests, all passing.** `UrlShortnerApplicationTests` is about 1.1 s of the run, because it boots Spring; all the other tests together take under 0.7 s.
 
 **Testing lessons**
 - Unit tests use `new`, not Spring. That's faster, and every test gets fresh state (JUnit creates a new test instance per method; Spring singletons are shared and cached).
@@ -84,6 +86,31 @@ Records already replace `@Data`/`@Value`, and writing constructors by hand first
 - Prefer **state** assertions (results) over **interaction** assertions (`verify`). Use `verify` only when the interaction *is* the requirement.
 - Test code must be as thread-safe as the code under test (hence `ConcurrentHashMap.newKeySet()`).
 - A concurrency test can show a race exists, but a passing run never proves there isn't one.
+
+---
+
+## Manual end-to-end check (`bootRun` + curl)
+
+| Check | Result |
+|---|---|
+| `GET /actuator/health` | `{"status":"UP"}` |
+| `POST /shorten` | `201`, `Location: http://localhost:8080/1`, `{"id":"1","shortUrl":"http://localhost:8080/1"}` |
+| Same long URL shortened twice | Different ids (`1`, then `3`), as designed |
+| `GET /1` | `302` → `Location: https://github.com/nujra-panda/system-design-with-code` |
+| URL with query string + fragment (`?b=1&c=2#frag`) | Kept exactly in `Location` |
+| `curl -L` (follow the redirect) | Lands on GitHub with `200`, after 1 hop |
+| `GET /zzz` (unknown) | `404` |
+| Blank / spaces / `google.com` / `ftp://` / `javascript:` / whitespace / `{}` / 2100-char URL | All `400` |
+| Malformed JSON | `400` |
+| No `Content-Type` header | `415 Unsupported Media Type` |
+| `GET /shorten` | `404` (only POST is mapped) |
+| **2,000 concurrent POSTs** (100 parallel curl processes) | 2,000 responses, **2,000 unique ids**, a random one redirects correctly |
+| **Restart, then `GET /1`** | `404`: every link is gone |
+| **Restart, then shorten** | Gets id `1` again: the counter reset |
+
+The last two rows are the Stage 2 problem, seen for real.
+
+**Finding:** while running under `bootRun`, a `400` response body includes the **full Java stack trace**. Spring DevTools turns on `server.error.include-stacktrace` in development. A packaged jar doesn't include DevTools, so production wouldn't leak this, but it's a reminder that error responses need deliberate design. A clean error format (e.g. `ProblemDetail`) is a good small follow-up.
 
 ---
 
