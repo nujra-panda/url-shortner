@@ -1,4 +1,4 @@
-package dev.arjun.urlshortener.domain;
+package dev.arjun.urlshortner.domain;
 
 import org.springframework.stereotype.Component;
 

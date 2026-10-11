@@ -1,6 +1,6 @@
-package dev.arjun.urlshortener.dao;
+package dev.arjun.urlshortner.dao;
 
-import dev.arjun.urlshortener.model.Redirection;
+import dev.arjun.urlshortner.model.Redirection;
 
 import java.util.Optional;
 

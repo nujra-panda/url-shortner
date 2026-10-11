@@ -1,3 +1,3 @@
-package dev.arjun.urlshortener.model;
+package dev.arjun.urlshortner.model;
 
 public record Redirection(String id, String longUrl) {}
