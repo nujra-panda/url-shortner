@@ -1,6 +1,8 @@
 package dev.arjun.urlshortner.api;
 
 import dev.arjun.urlshortner.domain.UrlShortner;
+import dev.arjun.urlshortner.dto.ShortenRequest;
+import dev.arjun.urlshortner.dto.ShortenResponse;
 import dev.arjun.urlshortner.model.Redirection;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;

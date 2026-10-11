@@ -34,7 +34,8 @@ The design work behind it (requirements, estimates, trade-offs) is in [`docs/00-
                                                   └──► RedirectionDao ◄── InMemoryRedirectionDao (ConcurrentHashMap)
 ```
 
-- **api**: HTTP only. It handles JSON, validation and status codes.
+- **api**: HTTP only. It handles routing and status codes.
+- **dto**: the JSON shapes going in and out of the API, plus the input validation rules.
 - **domain**: business logic. It only depends on the interfaces `IdGenerator` and `RedirectionDao`.
 - **dao**: storage behind an interface, so Stage 2 can swap in MySQL without touching the domain.
 
@@ -96,7 +97,8 @@ curl localhost:8080/actuator/health
 ```
 src/main/java/dev/arjun/urlshortner/
 ├── UrlShortenerApplication.java
-├── api/       RedirectionController, ShortenRequest, ShortenResponse
+├── api/       RedirectionController
+├── dto/       ShortenRequest, ShortenResponse
 ├── domain/    UrlShortner, IdGenerator, CounterIdGenerator, Base62
 ├── dao/       RedirectionDao, InMemoryRedirectionDao
 └── model/     Redirection

@@ -19,12 +19,13 @@
 | `domain/CounterIdGenerator` | domain | `AtomicLong` + `Base62` |
 | `domain/UrlShortner` | domain | `shorten` / `resolve`, built from the two interfaces |
 | `api/RedirectionController` | api | `POST /shorten` → 201, `GET /{id}` → 302 / 404 |
-| `api/ShortenRequest`, `api/ShortenResponse` | api | DTOs; the request carries the validation rules |
+| `dto/ShortenRequest`, `dto/ShortenResponse` | dto | DTOs; the request carries the validation rules |
 
 ```
 api ──► domain ──► dao        (dependencies point one way only)
-          │
-          └── model is used by every layer
+ │        │
+ │        └── model is used by every layer
+ └── dto is used only by api
 ```
 
 ---
@@ -58,7 +59,7 @@ Saving an id that already exists **throws** instead of overwriting (the "Alice/B
 
 ### HTTP
 - `201 Created` + `Location` for shorten; `302 Found` for redirect (see the design doc for why not 301); `404` via `Optional`.
-- **DTOs** keep the internal model out of the public API. `shortUrl` isn't part of the model, and future fields (`expiresAt`, `userId`) shouldn't leak out.
+- **DTOs** keep the internal model out of the public API. `shortUrl` isn't part of the model, and future fields (`expiresAt`, `userId`) shouldn't leak out. They live in their own `dto/` package, separate from the controller. Only `api` may use them; the domain never sees a DTO.
 - **Validation:** `@NotBlank`, `@Size(max = 2048)`, and `^https?://\S+$`. The scheme check blocks `javascript:` URLs, which would otherwise turn our trusted short links into an XSS vector.
 
 ### No Lombok (for now)

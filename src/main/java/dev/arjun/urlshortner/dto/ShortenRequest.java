@@ -1,4 +1,4 @@
-package dev.arjun.urlshortner.api;
+package dev.arjun.urlshortner.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
